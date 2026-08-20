@@ -1,0 +1,2 @@
+import {NextRequest} from 'next/server';import bcrypt from 'bcryptjs';import {db} from '@/lib/db';import {createSession} from '@/lib/auth';import {bad,ok} from '@/lib/api';
+export async function POST(req:NextRequest){try{const {email,password}=await req.json();const u=await db.user.findUnique({where:{email:String(email).toLowerCase()}});if(!u||!(await bcrypt.compare(String(password),u.passwordHash)))return bad('Email or password is incorrect',401);await createSession(u.id);return ok({user:{id:u.id,firstName:u.firstName,role:u.role}})}catch{return bad('Invalid login',400)}}
