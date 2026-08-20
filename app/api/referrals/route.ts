@@ -1,0 +1,1 @@
+import {db} from '@/lib/db';import {requireUser} from '@/lib/auth';import {bad,ok} from '@/lib/api';export async function GET(){try{const u=await requireUser();const refs=await db.user.findMany({where:{referredById:u.id},select:{firstName:true,createdAt:true,email:true}});return ok({referrals:refs})}catch{return bad('Unauthorized',401)}}
