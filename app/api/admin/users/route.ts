@@ -1,0 +1,1 @@
+import {requireAdmin} from '@/lib/auth';import {db} from '@/lib/db';import {bad,ok} from '@/lib/api';export async function GET(){try{await requireAdmin();const users=await db.user.findMany({orderBy:{createdAt:'desc'},take:200,select:{id:true,firstName:true,email:true,province:true,role:true,referralCode:true,createdAt:true}});return ok({users})}catch{return bad('Forbidden',403)}}
