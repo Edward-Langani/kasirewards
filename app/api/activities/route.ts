@@ -1,0 +1,1 @@
+import {db} from '@/lib/db';import {ok} from '@/lib/api';export async function GET(){const activities=await db.activity.findMany({where:{status:'ACTIVE'},orderBy:{createdAt:'desc'}});return ok({activities})}
