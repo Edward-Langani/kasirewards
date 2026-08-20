@@ -1,0 +1,1 @@
+import {getCurrentUser} from '@/lib/auth';import {ok,bad} from '@/lib/api';export async function GET(){const u=await getCurrentUser();if(!u)return bad('Unauthorized',401);return ok({user:{id:u.id,firstName:u.firstName,email:u.email,role:u.role,referralCode:u.referralCode}})}
