@@ -1,0 +1,87 @@
+generator client { provider = "prisma-client-js" }
+
+datasource db { provider = "postgresql" url = env("DATABASE_URL") }
+
+enum Role { USER ADMIN }
+enum TransactionType { ACTIVITY REFERRAL BONUS WITHDRAWAL REVERSAL }
+enum TransactionStatus { PENDING AVAILABLE REVERSED }
+enum WithdrawalStatus { REQUESTED REVIEWING APPROVED PAID REJECTED }
+
+enum ActivityStatus { ACTIVE PAUSED }
+
+model User {
+  id String @id @default(cuid())
+  email String @unique
+  phone String?
+  passwordHash String
+  firstName String
+  province String?
+  role Role @default(USER)
+  referralCode String @unique
+  referredById String?
+  referredBy User? @relation("UserReferrals", fields:[referredById], references:[id])
+  referrals User[] @relation("UserReferrals")
+  transactions Transaction[]
+  completions ActivityCompletion[]
+  withdrawals Withdrawal[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Activity {
+  id String @id @default(cuid())
+  title String
+  description String
+  category String
+  rewardCents Int
+  estimatedMinutes Int
+  provider String?
+  externalUrl String?
+  status ActivityStatus @default(ACTIVE)
+  createdAt DateTime @default(now())
+  completions ActivityCompletion[]
+}
+
+model ActivityCompletion {
+  id String @id @default(cuid())
+  userId String
+  activityId String
+  status TransactionStatus @default(PENDING)
+  rewardCents Int
+  providerReference String?
+  createdAt DateTime @default(now())
+  verifiedAt DateTime?
+  user User @relation(fields:[userId], references:[id], onDelete:Cascade)
+  activity Activity @relation(fields:[activityId], references:[id], onDelete:Cascade)
+  @@unique([userId, activityId])
+}
+
+model Transaction {
+  id String @id @default(cuid())
+  userId String
+  type TransactionType
+  status TransactionStatus @default(AVAILABLE)
+  amountCents Int
+  description String
+  referenceId String?
+  createdAt DateTime @default(now())
+  user User @relation(fields:[userId], references:[id], onDelete:Cascade)
+  @@index([userId, createdAt])
+}
+
+model Withdrawal {
+  id String @id @default(cuid())
+  userId String
+  amountCents Int
+  status WithdrawalStatus @default(REQUESTED)
+  bankName String
+  accountHolder String
+  accountNumberLast4 String
+  accountType String
+  providerReference String?
+  rejectionReason String?
+  createdAt DateTime @default(now())
+  processedAt DateTime?
+  user User @relation(fields:[userId], references:[id], onDelete:Cascade)
+  @@index([status, createdAt])
+}
